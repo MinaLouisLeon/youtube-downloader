@@ -13,3 +13,11 @@ export const actionAddVideo = (index,args) => {
         index : index,
     }
 }
+
+//set the downloading progress of video received from main
+export const actionSetProgress = (args) => {
+    return{
+        type : 'setProgress',
+        payload : args
+    }
+}

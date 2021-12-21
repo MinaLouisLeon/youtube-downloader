@@ -19,6 +19,8 @@ let youtubeBrowserWindow;
 let downloaderWindow;
 let isDownloadVideoWindowOpened = false;
 let videoList = [];
+let videosProgressArr = [];
+
 let output;
 //youtube browser window
 function createYoutubeBrowserWindow() {
@@ -71,7 +73,6 @@ const menuYoutubeBrowserWindow = [
 //downloader webapp window
 const getVideoInfo = async () => {
   const videoUrl = youtubeBrowserWindow.webContents.getURL();
-  console.log(videoUrl);
   if (videoUrl === "https://www.youtube.com/") {
     dialog.showErrorBox(
       "invalid video",
@@ -135,6 +136,26 @@ if (process.platform === "darwin") {
 if (process.platform === "win32") {
   output = process.env.USERPROFILE + "\\Downloads\\";
 }
+
+setInterval(() => {
+  let allDone = false;
+  if(videosProgressArr.length !== 0){
+    videosProgressArr.every((value) => {
+      if(value !== 100){
+        allDone = false;
+        return false;
+      }else{
+        allDone = true;
+        return true;
+      }
+    })
+    // add ipcMain to send progress
+    if(!allDone){
+      downloaderWindow.webContents.send("video:progress",videosProgressArr);
+    }
+  }
+},3000)
+
 ipcMain.on("video:startDownload", (event, args) => {
   videoList.push({
     video: ytdl(args.videoUrl, { quality: args.itag }),
@@ -144,14 +165,12 @@ ipcMain.on("video:startDownload", (event, args) => {
     downloadFinished: false,
   });
   videoList.forEach((value, index) => {
-    console.log(value)
     if (!value.downloadStarted) {
       videoList[index] = {
         ...videoList[index],
         downloadStarted: true,
       };
-      console.log(typeof value.saveLocation);
-      let savePath = path.resolve(value.saveLocation, args.title.replace(/\s\*\.\"\\\'/g, "_")  +".mp4");
+      let savePath = path.resolve(value.saveLocation, args.title.replace(/[&\/\\#,| +()$~%.'":*?<>{}]/g, "_")  +".mp4");
       value.video.pipe(fs.createWriteStream(savePath));
       value.video.on("progress", (_, downloaded, total) => {
         let progress = (downloaded / total) * 100;
@@ -159,19 +178,18 @@ ipcMain.on("video:startDownload", (event, args) => {
           ...videoList[index],
           progress: progress,
         };
+        videosProgressArr[index] = progress;
         if (progress === 100) {
           videoList[index] = {
             ...videoList[index],
             downloadFinished: true,
           };
+          downloaderWindow.webContents.send("video:progress",videosProgressArr);
         }
-        console.log(videoList);
       });
     }
   });
 });
-
-
 
 
 // ipcMain.on("video:startDownload",(event,args) => {

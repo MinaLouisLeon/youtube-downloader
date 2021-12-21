@@ -8,7 +8,7 @@ contextBridge.exposeInMainWorld("downloaderApi",{
         }
     },
     receive : (channel,func) => {
-        let validChannels = ["video:newInfo"];
+        let validChannels = ["video:newInfo","video:progress"];
         if(validChannels.includes(channel)){
             ipcRenderer.on(channel,(event,...args) => {
                 func(...args)
