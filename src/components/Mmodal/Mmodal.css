@@ -1,0 +1,28 @@
+.Mmodal-main-container{
+    position:absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    z-index: 9;
+    background-color: rgba(0, 0, 0, 0.3);
+}
+
+.Mmodal-inner-container{
+    position: fixed;
+    width: 80%;
+    height: auto;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    background-color: white;
+    /* overflow: auto; */
+}
+
+.Mmodal-block{
+    display: block;
+}
+
+.Mmodal-none{
+    display: none;
+}
